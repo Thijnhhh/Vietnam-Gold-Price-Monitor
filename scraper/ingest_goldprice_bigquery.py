@@ -95,7 +95,7 @@ def scrape_gold_prices(output_format='dataframe'):
             sell_price = sanitize_price(sell_raw)
             
             if brand and (buy_price > 0 or sell_price > 0):
-                now_str = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).replace(microsecond=0)
+                now_str = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).replace(microsecond=0, tzinfo = None)
                 data_matrix.append([brand, buy_price, sell_price, now_str])
     
     df = pd.DataFrame(data_matrix, columns=["brand", "buy_price", "sell_price", "date"])
