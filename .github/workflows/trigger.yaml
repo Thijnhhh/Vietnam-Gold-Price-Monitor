@@ -2,7 +2,7 @@ name: Auto scraper gold price daily
 on:
   schedule:
     # 8h VN = 1h UTC | 12h VN = 5h UTC | 16h VN = 9h UTC | 20h VN = 13h UTC
-    - cron: '0 1,5,9,13 * * *' 
+    - cron: '20 1,5,8,13 * * *' 
   workflow_dispatch: # Allows manual triggering from the Actions tab
 
 jobs:
