@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import decimal
 import json
 import datetime
 import os
