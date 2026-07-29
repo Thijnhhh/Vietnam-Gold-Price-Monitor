@@ -21,21 +21,10 @@ def sanitize_price(price_str):
         return int(digits)
     return 0
 
-def append_to_csv(df, filepath='gold_prices.csv'):
-    # If the file doesn't exist yet, create it directly
-    if not os.path.exists(filepath):
-        df.to_csv(filepath, index=False)
-        return
-
-    # Read existing data, combine with new data, and drop duplicates
-    existing_df = pd.read_csv(filepath)
-    combined_df = pd.concat([existing_df, df], ignore_index=True)
-    
-    # Remove duplicate rows (keeps the first occurrence by default)
-    deduped_df = combined_df.drop_duplicates()
-    
-    # Save back to CSV
-    deduped_df.to_csv(filepath, index=False)
+def append_to_csv(df, filepath='data/gold_prices.csv'):
+    # Append directly to CSV without duplicate check
+    file_exists = os.path.exists(filepath)
+    df.to_csv(filepath, mode='a', header=not file_exists, index=False)
     print(f"✓ Successfully loaded {len(df)} rows to CSV")
 
 def initialize_clients(SERVICE_ACCOUNT_KEY: str, PROJECT_ID: str):
@@ -106,9 +95,10 @@ def scrape_gold_prices(output_format='dataframe'):
             sell_price = sanitize_price(sell_raw)
             
             if brand and (buy_price > 0 or sell_price > 0):
-                data_matrix.append([brand, buy_price, sell_price, datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))])
+                now_str = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).replace(microsecond=0)
+                data_matrix.append([brand, buy_price, sell_price, now_str])
     
-    df = pd.DataFrame(data_matrix, columns=["brand", "buy", "sell", "date"])
+    df = pd.DataFrame(data_matrix, columns=["brand", "buy_price", "sell_price", "date"])
 
     if output_format == 'numpy':
         return np.array(data_matrix)
@@ -119,7 +109,7 @@ def scrape_gold_prices(output_format='dataframe'):
 
 if __name__ == "__main__":
     df_prices = scrape_gold_prices(output_format='dataframe')
-    if df_prices:
+    if df_prices is not None and not df_prices.empty:
       # append to csv
       append_to_csv(df_prices)
 
