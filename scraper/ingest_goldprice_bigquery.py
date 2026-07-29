@@ -100,6 +100,18 @@ def scrape_gold_prices(output_format='dataframe'):
     
     df = pd.DataFrame(data_matrix, columns=["brand", "buy_price", "sell_price", "date"])
 
+    df["brand"] = df["brand"].astype("string")
+    #Helper function
+    def to_bq_numeric(val):
+        if pd.isna(val):
+            return None
+        return decimal.Decimal(str(val))
+    
+    df["buy_price"] = df["buy_price"].apply(to_bq_numeric)
+    df["sell_price"] = df["sell_price"].apply(to_bq_numeric)
+    
+    df["date"] = pd.to_datetime(df["date"])
+    
     if output_format == 'numpy':
         return np.array(data_matrix)
     elif output_format == 'array':
