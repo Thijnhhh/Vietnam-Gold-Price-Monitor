@@ -1,0 +1,47 @@
+name: Auto scrape gold price daily
+on:
+  schedule:
+    # 8h VN = 1h UTC | 12h VN = 5h UTC | 16h VN = 9h UTC | 20h VN = 13h UTC
+    - cron: '0 1,5,9,13 * * *' 
+  workflow_dispatch: # Allows manual triggering from the Actions tab
+
+jobs:
+  process-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+          - name: Checkout Repository
+            uses: actions/checkout@v4
+    
+          - name: Set up Python
+            uses: actions/setup-python@v5
+            with:
+              python-version: '3.14.6'
+    
+          # Bước 1: Cache nguyên thư mục .venv
+          - name: Cache Virtual Environment
+            uses: actions/cache@v4
+            id: cache-venv
+            with:
+              path: .venv
+              key: ${{ runner.os }}-venv-${{ hashFiles('requirements.txt') }}
+    
+          # Bước 2: Chỉ cài đặt NẾU KHÔNG CÓ CACHE (cache-hit != 'true')
+          # Nếu có cache, bước này sẽ được tự động BỎ QUA hoàn toàn
+          - name: Install dependencies
+            if: steps.cache-venv.outputs.cache-hit != 'true'
+            run: |
+              python -m venv .venv
+              source .venv/bin/activate
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+    
+          # Bước 3: Kích hoạt môi trường ảo và chạy code
+          - name: Run scraper Script
+            env:
+              GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+              ID_BIGQUERY: ${{ secrets.GCP_PROJECT_ID }}
+            run: |
+              source .venv/venv/bin/activate || source .venv/bin/activate
+              python scraper/ingest_goldprice_bigquery.py
