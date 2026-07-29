@@ -1,4 +1,4 @@
-name: Auto scrape gold price daily
+name: Auto scraper gold price daily
 on:
   schedule:
     # 8h VN = 1h UTC | 12h VN = 5h UTC | 16h VN = 9h UTC | 20h VN = 13h UTC
@@ -41,7 +41,12 @@ jobs:
           - name: Run scraper Script
             env:
               GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-              ID_BIGQUERY: ${{ secrets.GCP_PROJECT_ID }}
+              GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
             run: |
               source .venv/venv/bin/activate || source .venv/bin/activate
               python scraper/ingest_goldprice_bigquery.py
+          - name: Commit and push updated CSV
+            uses: stefanzweifel/git-auto-commit-action@v5
+            with:
+              commit_message: "auto: update gold prices CSV [bot]"
+              file_pattern: 'data/gold_prices.csv'
